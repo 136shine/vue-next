@@ -1,0 +1,156 @@
+<script src="./reactivity.global.js"></script>
+<script>
+const { reactive, effect, computed } = VueObserver
+
+
+// Q: 递归问题
+// const origin = {
+//   count: 0,
+//   info: {
+//       name: 'xx1',
+//       age: 16
+//   }
+// }
+// const state = reactive(origin) // 初始化
+
+// const fn1 = () => {
+//   const count = state.count
+//   console.log(`set count to ${count}`)
+// }
+// effect(fn1) // 依赖收集
+// state.count = 4 // 响应触发
+
+
+// Q: run() 方法存在 cleanup() 逻辑的原因:
+// let dummy
+// const obj = reactive({ prop: 'value', run: true })
+
+// const conditionalSpy = () => {
+// dummy = obj.run ? obj.prop : 'other'
+// }
+// effect(conditionalSpy)
+// obj.run = false
+// console.log(dummy)
+// obj.prop = 'kkk'
+// console.log('kkk',dummy)
+
+
+// Q: trigger -> oprationType === ADD | DELETE 的兜地问题
+// const origin = []
+// let dummy
+// const list = reactive(origin)
+
+// const fn1 = () => {
+//   dummy = list.length + list[0] || 0
+//   console.log(`dummy ${dummy}`)
+// }
+// effect(fn1)
+// list.push(1)
+
+// Q: computed ->  trackChildRun(runner);
+const value = reactive({
+    foo: 1
+})
+const cValue = computed(() => value.foo)  // effect 子
+let dummy
+// 父
+effect(() => {
+    dummy = cValue.value
+})
+
+value.foo = 4
+
+console.log(dummy)
+
+</script>
+
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body> 
+    <script>
+    window.onload = function() {
+        var currentEffect;
+        var effectMap = new Map();
+        function isObject(obj) {
+            console.log('isObject=>', Object.prototype.toString.call(obj) === '[object Object]');
+            return Object.prototype.toString.call(obj) === '[object Object]';
+        }
+        function reactive(obj) {
+            var proxied = new Proxy(obj, {
+                get: function (target, key, receiver) {
+                    console.log('currentEffect=>', key);
+                    if (currentEffect) {
+                        if (effectMap.has(key)) {
+                            var effects = effectMap.get(key);
+                            if (effects.indexOf(currentEffect) === -1) {
+                                effects.push(currentEffect);
+                                console.log('effects=>', currentEffect, effects);
+                            }
+                        }
+                        else {
+                            effectMap.set(key, [currentEffect]);
+                            console.log('effects=>2', key, currentEffect, effectMap);
+                        }
+                    }
+                    var res = Reflect.get(target, key, receiver);
+                    console.log('res=>', res);
+                    return isObject(res) ? reactive(res): res;
+                    // return res;
+                },
+                set: function (target, key, value, receiver) {
+                    var result = Reflect.set(target, key, value, receiver);
+                    if (effectMap.has(key)) {
+                        effectMap.get(key).forEach(function (effect) { return effect(); });
+                    }
+                    return result;
+                }
+            });
+            return proxied;
+        }
+        function effect(fn) {
+            var effected = function () {
+                fn();
+            };
+            currentEffect = effected;
+            effected();
+            currentEffect = undefined;
+            return effected;
+        }
+        var state = reactive({
+            foo: 0,
+            info: {
+                name: 'xx2',
+                age: 16
+            }
+        });
+        var $counter = document.querySelector(".counter");
+        var $inc = document.querySelector(".inc");
+        var $dec = document.querySelector(".dec");
+        var $changeName = document.querySelector(".changeName");
+        $inc.addEventListener("click", function () { return state.foo++; });
+        $dec.addEventListener("click", function () { return state.foo--; });
+        $changeName.addEventListener("click", function () { state.info.name = 'kkkk'; console.log('name---', state.info.name); });
+        effect(function () {
+            console.log('name, age=>', state.info.name, state.info.age);
+        });
+        effect(() => {
+          console.log('foo=>',state.foo);
+        }); 
+    }
+
+
+    </script>
+    <div class="counter">0</div>
+    <button class="inc">inc</button>
+    <button class="dec">dec</button>
+    <button class="changeName">changeName</button>
+  </body>
+</html> -->
+
