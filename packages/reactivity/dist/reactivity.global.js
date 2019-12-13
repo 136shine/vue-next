@@ -606,6 +606,7 @@ var VueObserver = (function(exports) {
     if (!canObserve(target)) {
       return target
     }
+
     const handlers = collectionTypes.has(target.constructor)
       ? collectionHandlers
       : baseHandlers

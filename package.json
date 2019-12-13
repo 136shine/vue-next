@@ -55,5 +55,6 @@
     "tsd": "^0.11.0",
     "typescript": "^3.7.0",
     "yorkie": "^2.0.0"
-  }
+  },
+  "dependencies": {}
 }

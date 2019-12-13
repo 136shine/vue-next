@@ -20,13 +20,17 @@ const readonlyToRaw = new WeakMap<any, any>()
 // WeakSets for values that are marked readonly or non-reactive during
 // observable creation.
 const readonlyValues = new WeakSet<any>()
-const nonReactiveValues = new WeakSet<any>()
+const nonReactiveValues = new WeakSet<any>() // nonReactiveValues 存储非响应式对象, 如: DOM
 
 const collectionTypes = new Set<Function>([Set, Map, WeakMap, WeakSet])
 const isObservableType = /*#__PURE__*/ makeMap(
   'Object,Array,Map,Set,WeakMap,WeakSet'
 )
 
+//  可以被观察的值同时具备的条件:
+// 非Vue对象 && 非虚拟节点 && 在可被观察的类型(Object,Array,Map,Set,WeakMap,WeakSet)中 && 不是非响应式
+// toRawType: 获取原生的数据类型
+// makeMap: 过滤类型, 返回筛选函数
 const canObserve = (value: any): boolean => {
   return (
     !value._isVue &&
@@ -36,7 +40,7 @@ const canObserve = (value: any): boolean => {
   )
 }
 
-// only unwrap nested ref
+// only unwrap nested ref 只自动展开嵌套ref
 type UnwrapNestedRefs<T> = T extends Ref ? T : UnwrapRef<T>
 
 export function reactive<T extends object>(target: T): UnwrapNestedRefs<T>
@@ -64,6 +68,7 @@ export function readonly<T extends object>(
   // value is a mutable observable, retrieve its original and return
   // a readonly version.
   if (reactiveToRaw.has(target)) {
+    // target is reactive
     target = reactiveToRaw.get(target)
   }
   return createReactiveObject(
@@ -122,7 +127,7 @@ function createReactiveObject(
     : baseHandlers
   observed = new Proxy(target, handlers)
   toProxy.set(target, observed)
-  toRaw.set(observed, target)
+  toRaw.set(observed, target) // 防止reactive已经被reactive的值, 导致多次Proxy
   return observed
 }
 

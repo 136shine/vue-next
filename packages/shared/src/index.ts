@@ -52,6 +52,7 @@ export const objectToString = Object.prototype.toString
 export const toTypeString = (value: unknown): string =>
   objectToString.call(value)
 
+// 获取原生数据类型
 export function toRawType(value: unknown): string {
   return toTypeString(value).slice(8, -1)
 }
@@ -59,6 +60,7 @@ export function toRawType(value: unknown): string {
 export const isPlainObject = (val: unknown): val is object =>
   toTypeString(val) === '[object Object]'
 
+// 保留字
 export const isReservedProp = /*#__PURE__*/ makeMap(
   'key,ref,' +
     'onVnodeBeforeMount,onVnodeMounted,' +
@@ -66,20 +68,24 @@ export const isReservedProp = /*#__PURE__*/ makeMap(
     'onVnodeBeforeUnmount,onVnodeUnmounted'
 )
 
+// -连字符 -> 驼峰
 const camelizeRE = /-(\w)/g
 export const camelize = (str: string): string => {
   return str.replace(camelizeRE, (_, c) => (c ? c.toUpperCase() : ''))
 }
 
+// 驼峰 -> -连字符
 const hyphenateRE = /\B([A-Z])/g
 export const hyphenate = (str: string): string => {
   return str.replace(hyphenateRE, '-$1').toLowerCase()
 }
 
+// 首字母大写
 export const capitalize = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 // compare whether a value has changed, accounting for NaN.
+// 判断数据是否变化, 排除数据值为NaN的情况 (NaN !== NaN)
 export const hasChanged = (value: any, oldValue: any): boolean =>
   value !== oldValue && (value === value || oldValue === oldValue)

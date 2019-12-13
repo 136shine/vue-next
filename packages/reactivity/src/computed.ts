@@ -43,10 +43,13 @@ export function computed<T>(
   let dirty = true
   let value: T
 
+  // runner是effect函数, 返回effect
   const runner = effect(getter, {
     lazy: true,
     // mark effect as computed so that it gets priority during trigger
+    // 将效果标记为计算，以便在触发期间获得优先级
     computed: true,
+    // 因为这里设置的调度器，依赖触发tirgger事件只是将dirty变为true
     scheduler: () => {
       dirty = true
     }
@@ -63,7 +66,7 @@ export function computed<T>(
       // When computed effects are accessed in a parent effect, the parent
       // should track all the dependencies the computed property has tracked.
       // This should also apply for chained computed properties.
-      trackChildRun(runner)
+      trackChildRun(runner) // computed(fn)的返回值再次被监听
       return value
     },
     set value(newValue: T) {

@@ -1,6 +1,6 @@
 <script src="./reactivity.global.js"></script>
 <script>
-const { reactive, effect, computed } = VueObserver
+const { reactive, effect, computed, ref, isRef } = VueObserver
 
 
 // Q: 递归问题
@@ -48,10 +48,11 @@ const { reactive, effect, computed } = VueObserver
 // list.push(1)
 
 // Q: computed ->  trackChildRun(runner);
+// 依赖于computed的effect 依赖追踪
 const value = reactive({
     foo: 1
 })
-const cValue = computed(() => value.foo)  // effect 子
+const cValue = computed(() => value.foo)  // effect 子, const runner = effecf, 返回Ref
 let dummy
 // 父
 effect(() => {
@@ -59,8 +60,27 @@ effect(() => {
 })
 
 value.foo = 4
+// console.log(dummy)
+// console.log(cValue.value)
 
-console.log(dummy)
+// Q: toRaw(observed, target) 防止对已是observed的数据进行reactive, 导致多次Proxy
+// const state = reactive({a: {b: {c: 1}}});
+// const p1 = reactive(state);
+
+
+// const origin = new Array()
+// origin.push('a')
+// const origin = new Set([1, 2, 5]) // ƒ Set() { [native code] } true
+// const origin = new Array(1, 2, 5)
+// const origin = new Object() // target.constructor => ƒ Object() { [native code] } false
+// origin.b = 'xx'
+// const state = reactive(origin) // 初始化
+// effect(()=>{console.log([...state])})
+// state.clear();
+
+// const state = reactive({info: {name: 'xxx', age: 16}});
+
+
 
 </script>
 

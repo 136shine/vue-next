@@ -5,6 +5,7 @@ import { LOCKED } from './lock'
 import { isObject, hasOwn, isSymbol, hasChanged } from '@vue/shared'
 import { isRef } from './ref'
 
+// Symbol的内置对象且类型为Symbol
 const builtInSymbols = new Set(
   Object.getOwnPropertyNames(Symbol)
     .map(key => (Symbol as any)[key])
@@ -14,6 +15,7 @@ const builtInSymbols = new Set(
 function createGetter(isReadonly: boolean, shallow = false) {
   return function get(target: object, key: string | symbol, receiver: object) {
     const res = Reflect.get(target, key, receiver)
+    // 防止key为Symbol的内置对象，比如 Symbol.iterator
     if (isSymbol(key) && builtInSymbols.has(key)) {
       return res
     }
@@ -22,10 +24,13 @@ function createGetter(isReadonly: boolean, shallow = false) {
       // TODO strict mode that returns a shallow-readonly version of the value
       return res
     }
+    // 被ref包装为Ref对象, Ref对象包含依赖追踪,响应触发
     if (isRef(res)) {
       return res.value
     }
     track(target, TrackOpTypes.GET, key)
+    // 对深层对象再次包装
+    // res 是深层对象，如果它不是只读对象，则调用 reactive 继续代理
     return isObject(res)
       ? isReadonly
         ? // need to lazy access readonly and reactive here to avoid
@@ -45,6 +50,8 @@ function set(
   value = toRaw(value)
   const oldValue = (target as any)[key]
   if (isRef(oldValue) && !isRef(value)) {
+    // 进入的条件??
+    // 触发 oldValue 的 set value 方法，如果 isObject(value) ，则会经过 reactive 再包装一次，将其变成响应式数据
     oldValue.value = value
     return true
   }

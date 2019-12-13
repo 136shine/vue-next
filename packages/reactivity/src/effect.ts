@@ -183,6 +183,7 @@ export function trigger(
   }
   // Important: computed effects must be run first so that computed getters
   // can be invalidated before any normal effects that depend on them are run.
+  // 必须先运行computed effects，以便computed getter是否可以在运行任何依赖于它们的normal effects之前失效
   computedRunners.forEach(run)
   effects.forEach(run)
 }
