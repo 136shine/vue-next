@@ -225,6 +225,7 @@ const readonlyInstrumentations: Record<string, Function> = {
   forEach: createForEach(true)
 }
 
+// 为mutableInstrumentations和readonlyInstrumentations分别添加遍历迭代器
 const iteratorMethods = ['keys', 'values', 'entries', Symbol.iterator]
 iteratorMethods.forEach(method => {
   mutableInstrumentations[method as string] = createIterableMethod(
@@ -237,6 +238,7 @@ iteratorMethods.forEach(method => {
   )
 })
 
+// 创建getter
 function createInstrumentationGetter(
   instrumentations: Record<string, Function>
 ) {

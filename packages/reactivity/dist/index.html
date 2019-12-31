@@ -49,19 +49,40 @@ const { reactive, effect, computed, ref, isRef } = VueObserver
 
 // Q: computed ->  trackChildRun(runner);
 // 依赖于computed的effect 依赖追踪
-const value = reactive({
-    foo: 1
-})
-const cValue = computed(() => value.foo)  // effect 子, const runner = effecf, 返回Ref
-let dummy
-// 父
-effect(() => {
-    dummy = cValue.value
-})
+// const value = reactive({
+//     foo: 1
+// })
+// const cValue = computed(() => value.foo)  // effect 子, const runner = effecf, 返回Ref
+// let dummy
+// // 父
+// effect(() => {
+//     dummy = cValue.value
+// })
 
-value.foo = 4
+// value.foo = 4
 // console.log(dummy)
-// console.log(cValue.value)
+// // console.log(cValue.value)
+
+
+
+// Q: computed -> trackChildRun(runner) -> parentRunner.deps.push(childRunner.deps[i])的作用
+const value = reactive({ foo: 0 })
+const getter1 = () => value.foo
+const getter2 = () => {
+    return c1.value + 1
+}
+const c1 = computed(getter1)
+const c2 = computed(getter2)
+
+let dummy
+effect(() => {
+    dummy = c2.value
+})
+// console.log(dummy)
+value.foo++
+
+
+
 
 // Q: toRaw(observed, target) 防止对已是observed的数据进行reactive, 导致多次Proxy
 // const state = reactive({a: {b: {c: 1}}});
